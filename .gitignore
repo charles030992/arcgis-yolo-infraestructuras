@@ -1,5 +1,37 @@
+# Credenciales y entorno
 .env
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+arcgis-yolo/
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+
+# Jupyter
 .ipynb_checkpoints/
+
+# Datos geoespaciales (archivos grandes, no van al repo)
+data/
+datasets/
+*.tif
+*.tiff
+*.shp
+*.dbf
+*.shx
+*.prj
+*.geojson
+
+# Salidas generadas
+*.html
+output/
+exports/
+
+# IDEs
+.vscode/
+.idea/
