@@ -65,7 +65,7 @@ arcGIS-Yolo-python/
 
 ## Caso de uso
 
-Aplicado al sector de obra e infraestructuras (LICUAS):
+Aplicado al sector de obra e infraestructuras:
 
 1. Técnico fotografía señal, activo o defecto en campo
 2. YOLO identifica el objeto y su tipo con bounding box
