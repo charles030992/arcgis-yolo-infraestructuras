@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+
+  # Contenedor 1: entorno Python con nuestro código
+  python:
+    build: .
+    container_name: arcgis-yolo-python
+    volumes:
+      - .:/app          # monta el proyecto local dentro del contenedor
+    env_file:
+      - .env            # carga las credenciales desde .env
+    depends_on:
+      - postgis
+
+  # Contenedor 2: base de datos PostGIS (PostgreSQL con extensión espacial)
+  postgis:
+    image: postgis/postgis:15-3.3
+    container_name: arcgis-yolo-postgis
+    environment:
+      POSTGRES_DB: gis_db
+      POSTGRES_USER: gis_user
+      POSTGRES_PASSWORD: gis_password
+    ports:
+      - "5432:5432"     # accesible desde tu máquina en localhost:5432
+    volumes:
+      - postgis_data:/var/lib/postgresql/data   # datos persistentes
+
+volumes:
+  postgis_data:
