@@ -43,6 +43,7 @@ from PIL import Image
 # Incluye el modelo, las utilidades de visualización y la descarga
 # automática de pesos preentrenados.
 from ultralytics import YOLO
+from ultralytics.utils import ASSETS  # carpeta con imágenes de muestra incluidas en el paquete
 
 print("=" * 60)
 print("Script 07 — Detección de infraestructuras con YOLOv8")
@@ -84,31 +85,30 @@ for id_clase, nombre in sorted(modelo.names.items()):
 # En un proyecto real estas serán fotos tomadas en campo:
 # drones, cámaras de inspección, móvil, etc.
 #
-# Para este script usamos imágenes públicas descargadas por URL.
-# Si quieres usar imágenes propias, añade entradas con "ruta_local"
-# en lugar de "url" (ver comentario al final de la lista).
+# Usamos las imágenes de muestra incluidas en el paquete ultralytics (ASSETS).
+# ASSETS es una ruta dentro del paquete instalado — siempre están disponibles,
+# sin descargas externas ni problemas de permisos (403, firewall, etc.).
+#
+# En el proyecto real estas serán fotos tomadas en campo:
+# drones, cámaras de inspección, fotos de móvil, etc.
+# Para añadirlas, usa "ruta_local" apuntando a tu archivo.
 
 imagenes_prueba = [
     {
         "nombre": "calle_autobus",
-        "url": "https://ultralytics.com/images/bus.jpg",
+        "ruta_local": str(ASSETS / "bus.jpg"),
         "descripcion": "Calle urbana con autobús y peatones"
     },
     {
-        "nombre": "autopista_vehiculos",
-        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Bundesautobahn_9_Irschenberg_Ausfahrt.jpg/1280px-Bundesautobahn_9_Irschenberg_Ausfahrt.jpg",
-        "descripcion": "Autopista con vehículos en circulación"
+        "nombre": "personas_exterior",
+        "ruta_local": str(ASSETS / "zidane.jpg"),
+        "descripcion": "Personas en espacio exterior"
     },
-    {
-        "nombre": "trafico_ciudad",
-        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Pedestrian_checking_phone_and_crossing_road.jpg/1280px-Pedestrian_checking_phone_and_crossing_road.jpg",
-        "descripcion": "Peatones cruzando en zona urbana"
-    },
-    # Para usar una imagen propia, descomenta y ajusta:
+    # Cuando tengas fotos propias de infraestructuras, añádelas así:
     # {
-    #     "nombre": "foto_campo",
-    #     "ruta_local": "ruta/a/tu/imagen.jpg",
-    #     "descripcion": "Foto tomada en campo"
+    #     "nombre": "farola_sector_norte",
+    #     "ruta_local": "/content/mi_foto.jpg",   # ruta en Colab tras subir el archivo
+    #     "descripcion": "Inspección farola — sector norte"
     # },
 ]
 
