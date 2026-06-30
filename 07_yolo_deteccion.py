@@ -127,8 +127,12 @@ def descargar_imagen(url: str, ruta_destino: Path) -> bool:
     Retorna True si tuvo éxito, False si hubo algún error.
     """
     try:
+        # Sin cabecera User-Agent, servidores como Wikipedia devuelven 403 Forbidden
+        # porque bloquean peticiones que no se identifican como un navegador.
+        # Añadimos esta cabecera para que el servidor nos trate como petición legítima.
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; YOLO-infraestructuras/1.0)"}
         # Hacemos una petición HTTP GET con timeout de 15 segundos
-        respuesta = requests.get(url, timeout=15)
+        respuesta = requests.get(url, timeout=15, headers=headers)
         # raise_for_status() lanza una excepción si el servidor devuelve error (404, 500...)
         respuesta.raise_for_status()
         # Convertimos los bytes recibidos en una imagen y la guardamos
