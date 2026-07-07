@@ -104,6 +104,11 @@ imagenes_prueba = [
         "ruta_local": str(ASSETS / "zidane.jpg"),
         "descripcion": "Personas en espacio exterior"
     },
+    {
+        "nombre": "bus_con_gps",
+        "ruta_local": "fotos_prueba/bus_con_gps.jpg",
+        "descripcion": "Prueba: bus.jpg con GPS EXIF inyectado (Barcelona) para validar el script 08"
+    },
     # Cuando tengas fotos propias de infraestructuras, añádelas así:
     # {
     #     "nombre": "farola_sector_norte",
@@ -239,6 +244,7 @@ for img_info in imagenes_disponibles:
         todas_detecciones.append({
             "imagen"            : img_info["nombre"],
             "descripcion_imagen": img_info["descripcion"],
+            "ruta_imagen"       : img_info["ruta_procesada"],
             "clase"             : nombre_clase,
             "id_clase"          : id_clase,
             "es_infraestructura": nombre_clase in CLASES_INFRAESTRUCTURA,
@@ -273,7 +279,7 @@ print("\n[BLOQUE 6] Guardando resultados...")
 
 if todas_detecciones:
     campos_csv = [
-        "imagen", "descripcion_imagen", "clase", "id_clase",
+        "imagen", "descripcion_imagen", "ruta_imagen", "clase", "id_clase",
         "es_infraestructura", "confianza",
         "x1", "y1", "x2", "y2", "ancho_px", "alto_px"
     ]
