@@ -5,6 +5,15 @@ from arcgis.gis import GIS
 
 load_dotenv()
 
+def conectar_arcgis():
+    gis = GIS(
+        os.getenv("ARCGIS_URL"),
+        os.getenv("ARCGIS_USERNAME"),
+        os.getenv("ARCGIS_PASSWORD"),
+    )
+    print(f"Conectado — {gis.users.me.username}")
+    return gis
+
 # --- BLOQUE 1: Crear datos de ejemplo ---
 # Simulamos 5 activos de infraestructura con coordenadas reales de Madrid
 
@@ -28,11 +37,7 @@ print(f"CSV creado con {len(datos)} activos: {ruta_csv}")
 # --- BLOQUE 2: Conectar a ArcGIS Online y subir el CSV ---
 
 print("\nConectando a ArcGIS Online...")
-gis = GIS(
-    "https://www.arcgis.com",
-    client_id=os.getenv("ARCGIS_CLIENT_ID")
-)
-print(f"Conectado como: {gis.users.me.username}")
+gis = conectar_arcgis()
 
 # Propiedades del item que vamos a subir
 propiedades_item = {
