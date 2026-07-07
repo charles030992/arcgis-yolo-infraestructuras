@@ -13,9 +13,9 @@ Pipeline completo: foto de obra → detección de objetos con YOLO → punto geo
 | 03 | `03_explorar_capa.py`      | Estructura de una Feature Layer: campos, geometría       | ✅ Completado |
 | 04 | `04_consulta_filtros.py`   | Queries con filtros sobre capas reales                   | ✅ Completado |
 | 05 | `05_mapas_interactivos.ipynb` | Mapas interactivos con Folium en Jupyter              | ✅ Completado |
-| 06 | `06_publicar_capa.py`      | Crear y publicar capa propia en ArcGIS Online            | 🔄 En progreso |
-| 07 | `07_yolo_deteccion.py`     | Detección de objetos con YOLOv8                          | ⏳ Pendiente  |
-| 08 | `08_pipeline_completo.py`  | Foto → YOLO → punto georreferenciado en ArcGIS           | ⏳ Pendiente  |
+| 06 | `06_publicar_capa.py`      | Crear y publicar capa propia en ArcGIS Online            | ✅ Completado |
+| 07 | `07_yolo_deteccion.py`     | Detección de objetos con YOLOv8                          | ✅ Completado |
+| 08 | `08_pipeline_completo.py`  | Foto → YOLO → punto georreferenciado en ArcGIS (EXIF o coordenada por defecto) | ✅ Completado |
 
 ---
 
@@ -51,11 +51,12 @@ arcGIS-Yolo-python/
 ├── 03_explorar_capa.py
 ├── 04_consulta_filtros.py
 ├── 05_mapas_interactivos.ipynb
-├── 06_publicar_capa.py          # feature/publicar-capa
-├── 07_yolo_deteccion.py         # feature/yolo-deteccion
-├── 08_pipeline_completo.py      # feature/pipeline-completo
-├── Dockerfile                   # feature/docker
-├── docker-compose.yml           # feature/docker
+├── 06_publicar_capa.py
+├── 07_yolo_deteccion.py
+├── 08_pipeline_completo.py
+├── fotos_prueba/                # fotos de prueba (incluye una con GPS EXIF inyectado)
+├── Dockerfile
+├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
 └── README.md
