@@ -5,24 +5,14 @@ from arcgis.gis import GIS
 
 load_dotenv()
 
-NOMBRE_PERFIL = "arcgis_yolo_proyecto"
-
 def conectar_arcgis():
-    # Intenta reutilizar sesión guardada; si falla o no existe, lanza OAuth
-    try:
-        gis = GIS(profile=NOMBRE_PERFIL)
-        gis.users.me  # fuerza validación real del token
-        print(f"Sesión reutilizada — {gis.users.me.username}")
-        return gis
-    except Exception:
-        print("Iniciando autenticación OAuth (se abrirá el navegador)...")
-        gis = GIS(
-            "https://www.arcgis.com",
-            client_id=os.getenv("ARCGIS_CLIENT_ID"),
-            profile=NOMBRE_PERFIL,   # guarda el token tras el login
-        )
-        print(f"Autenticado y perfil guardado — {gis.users.me.username}")
-        return gis
+    gis = GIS(
+        os.getenv("ARCGIS_URL"),
+        os.getenv("ARCGIS_USERNAME"),
+        os.getenv("ARCGIS_PASSWORD"),
+    )
+    print(f"Conectado — {gis.users.me.username}")
+    return gis
 
 # --- BLOQUE 1: Crear datos de ejemplo ---
 # Simulamos 5 activos de infraestructura con coordenadas reales de Madrid
