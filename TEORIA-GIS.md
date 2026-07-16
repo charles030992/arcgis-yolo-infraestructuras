@@ -176,7 +176,115 @@ mapa.save("archivo.html")
 
 ---
 
+## 6. PostGIS — SQL espacial (módulo 10, 2026-07-16)
+
+### 6.1 Qué es exactamente
+
+**PostgreSQL** es un motor de base de datos relacional normal (como MySQL).
+**PostGIS** es una *extensión* que se instala dentro de una base PostgreSQL
+y le añade: tipos de dato espaciales (`geometry`, `geography`), funciones
+`ST_*` (Spatial Type) para operar con ellos, e índices espaciales. No es una
+base de datos distinta — es PostgreSQL con superpoderes geométricos.
+
+Por debajo, PostGIS usa **GEOS** (la misma librería de cálculo geométrico
+que usa Shapely) y **PROJ** (la misma de reproyección que usa GeoPandas).
+Es la razón por la que la sintaxis y los conceptos se sienten tan parecidos
+a lo que ya hicimos en el script 09 — es la misma maquinaria, solo que
+expuesta como funciones SQL en vez de métodos Python.
+
+### 6.2 Por qué dos contenedores en `docker-compose.yml`
+
+El proyecto ya tenía definidos dos servicios sin usar hasta hoy:
+
+```yaml
+python:   # nuestro código
+  depends_on: [postgis]
+postgis:  # base de datos, imagen postgis/postgis:15-3.3
+  ports: ["5432:5432"]
+```
+
+Es el patrón estándar de "un contenedor por responsabilidad": el contenedor
+`python` no lleva instalada ninguna base de datos, y el contenedor `postgis`
+no lleva nuestro código. Se hablan por red interna de Docker (por nombre de
+servicio, `postgis`, como si fuera un hostname) y `depends_on` solo
+garantiza el *orden de arranque* — no espera a que PostGIS esté realmente
+listo para aceptar conexiones, ojo con eso en producción (ahí se usan
+"healthchecks", pero para aprender no hace falta todavía).
+
+### 6.3 `geometry` vs `geography` — la primera decisión de diseño
+
+Al crear una columna espacial en PostGIS eliges uno de los dos tipos:
+
+| | `geometry` | `geography` |
+|---|---|---|
+| Modelo matemático | Plano cartesiano (como un mapa en papel) | Superficie de una esfera real |
+| Requiere | Elegir un CRS proyectado en metros para medir bien (igual que en GeoPandas, ver §2) | Nada — mide siempre en metros sobre la esfera |
+| Velocidad | Más rápida | Más lenta (cálculos trigonométricos esféricos) |
+| Uso típico | Datos de un área acotada (una ciudad, un país) — nuestro caso | Datos que cubren distancias muy grandes o todo el planeta |
+
+**Decisión para este proyecto:** `geometry` con SRID `4326` para guardar
+(coincide con lo que ya guardábamos en GeoPandas), y reproyectar a `25830`
+solo en el momento de medir — exactamente el mismo patrón que ya aprendimos
+en §2, aplicado ahora en SQL.
+
+### 6.4 SRID = el mismo concepto que CRS, con otro nombre
+
+`SRID` (Spatial Reference ID) es como PostGIS llama al código EPSG que ya
+conocemos (`4326`, `25830`...). Toda geometría en PostGIS lleva su SRID
+pegado — si mezclas geometrías con SRID distinto en una misma operación,
+PostGIS lanza error en vez de darte un resultado silenciosamente mal (a
+diferencia de GeoPandas, donde el `sjoin` con CRS distintos puede fallar de
+forma menos explícita — ver trampa en §4). Es, en este aspecto, más
+estricto y más seguro por defecto.
+
+### 6.5 Funciones `ST_*` — las que vamos a usar
+
+| Función | Equivalente en GeoPandas/Shapely (§3-4) | Qué hace |
+|---|---|---|
+| `ST_SetSRID(ST_MakePoint(lon, lat), 4326)` | `Point(lon, lat)` + asignar CRS | Construye un punto geométrico a partir de dos números sueltos |
+| `ST_Transform(geom, 25830)` | `.to_crs("EPSG:25830")` | Reproyecta a un CRS distinto |
+| `ST_Buffer(geom, radio)` | `.buffer(radio)` | Círculo/zona alrededor de una geometría (radio en las unidades del CRS actual) |
+| `ST_DWithin(geom_a, geom_b, distancia)` | `sjoin` + `.distance() < X` combinados | ¿Está A a menos de X metros de B? — **la función clave**, ver §6.6 |
+| `ST_Within(geom_a, geom_b)` | `sjoin(predicate="within")` | ¿A está completamente dentro de B? |
+| `ST_Distance(geom_a, geom_b)` | `.distance()` | Distancia entre dos geometrías |
+
+### 6.6 Por qué `ST_DWithin` y no `ST_Distance(...) < 300`
+
+Esto es una trampa clásica de rendimiento, y buen tema de entrevista.
+`ST_Distance(a, b) < 300` obliga a la base de datos a **calcular la
+distancia exacta de cada fila** antes de poder filtrar — no puede usar el
+índice espacial, porque el índice solo sabe descartar rápido por
+proximidad aproximada (cajas), no calcular distancias exactas.
+`ST_DWithin(a, b, 300)` en cambio sí puede apoyarse en el índice `GIST`
+para descartar de entrada todo lo que está lejísimos, y solo calcula con
+precisión lo que ya está cerca. Con 10 filas da igual; con 10 millones,
+la diferencia es de segundos contra minutos/horas.
+
+### 6.7 Índice `GIST`
+
+Es el índice espacial de PostgreSQL (`CREATE INDEX ... USING GIST (geom)`).
+Funciona dividiendo el espacio en cajas contenedoras (bounding boxes)
+organizadas en árbol, para poder descartar rápidamente "esto no puede estar
+cerca" sin mirar la geometría exacta de cada fila. Es el motivo real por el
+que se usa una base de datos espacial en vez de cargar todo en memoria con
+GeoPandas cuando el volumen de datos crece — GeoPandas no tiene un índice
+espacial persistente entre ejecuciones, PostGIS sí.
+
+### 6.8 ¿Se pide en ofertas?
+
+Sí, y más que GeoPandas en perfiles "GIS Developer backend" o "Geospatial
+Data Engineer" — PostGIS es prácticamente el estándar de facto para
+almacenar datos espaciales en producción. Si en una oferta ves "PostGIS" o
+"SQL espacial", esperan justo estos conceptos: `geometry`/`geography`,
+`ST_*`, índices `GIST`, SRID.
+
+---
+
 ## Pendiente de anotar aquí más adelante
-- PostGIS y las funciones `ST_*` (cuando lleguemos a ese módulo).
 - Rasterio / GDAL para raster (bandas, resolución) — aún sin módulo.
 - Diferencia `intersects` vs `overlaps` vs `crosses` con ejemplos visuales.
+- **Docker manual** (pedido explícito 2026-07-16): imágenes vs contenedores
+  vs volúmenes vs redes, comandos básicos (`build`, `run`, `ps`, `images`,
+  `rm`/`rmi`, `logs`, `exec`), y cómo se relaciona todo con
+  `docker-compose.yml` de este proyecto (ya usado como caja negra hasta
+  ahora — falta entender qué hace cada pieza).

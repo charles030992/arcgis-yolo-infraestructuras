@@ -16,6 +16,8 @@ Pipeline completo: foto de obra → detección de objetos con YOLO → punto geo
 | 06 | `06_publicar_capa.py`      | Crear y publicar capa propia en ArcGIS Online            | ✅ Completado |
 | 07 | `07_yolo_deteccion.py`     | Detección de objetos con YOLOv8                          | ✅ Completado |
 | 08 | `08_pipeline_completo.py`  | Foto → YOLO → punto georreferenciado en ArcGIS (EXIF o coordenada por defecto) | ✅ Completado |
+| 09 | `09_analisis_espacial.py`  | Análisis espacial con GeoPandas/Shapely: buffer + spatial join sobre las detecciones | ✅ Completado |
+| 10 | `10_postgis_analisis.py` + `sql/10_postgis_conceptos_basicos.sql` | Mismo análisis espacial resuelto con SQL espacial (PostGIS, `ST_*`) — primero a mano en SQL puro, luego automatizado en Python | ✅ Completado |
 
 ---
 
@@ -54,7 +56,12 @@ arcGIS-Yolo-python/
 ├── 06_publicar_capa.py
 ├── 07_yolo_deteccion.py
 ├── 08_pipeline_completo.py
+├── 09_analisis_espacial.py
+├── 10_postgis_analisis.py
+├── sql/
+│   └── 10_postgis_conceptos_basicos.sql   # los mismos conceptos de 10, en SQL puro para practicar a mano
 ├── fotos_prueba/                # fotos de prueba (incluye una con GPS EXIF inyectado)
+├── TEORIA-GIS.md                # notas de teoría de repaso (CRS, sjoin, PostGIS...)
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .env.example
@@ -81,7 +88,18 @@ Aplicado al sector de obra e infraestructuras:
 conda create -n arcgis-yolo python=3.11 -y
 conda activate arcgis-yolo
 conda install -c esri arcgis -y
-pip install python-dotenv ultralytics
+pip install python-dotenv ultralytics geopandas shapely psycopg2-binary sqlalchemy
+```
+
+> **Nota (aprendida 2026-07-16):** instala GeoPandas/Shapely/psycopg2 con
+> `pip`, no con `conda install -c conda-forge`. El solver clásico de conda
+> puede tardar horas (o no terminar) resolviendo el árbol de dependencias
+> de GDAL/PROJ/GEOS; `pip` usa wheels precompiladas y tarda segundos.
+
+Para el módulo 10 (PostGIS), levanta solo ese contenedor:
+
+```bash
+docker compose up -d postgis
 ```
 
 ## Setup con Docker
