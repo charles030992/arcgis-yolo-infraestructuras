@@ -36,8 +36,9 @@ exports/
 .vscode/
 .idea/
 
-# Salidas generadas por los scripts 06/07/08 (se regeneran al ejecutar)
+# Salidas generadas por los scripts 06/07/08/09 (se regeneran al ejecutar)
 resultados_yolo/
 detecciones_georreferenciadas*.csv
+detecciones_analisis_espacial*.csv
 activos_infraestructura.csv
 yolov8n.pt
