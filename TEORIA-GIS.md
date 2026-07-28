@@ -280,8 +280,87 @@ almacenar datos espaciales en producción. Si en una oferta ves "PostGIS" o
 
 ---
 
+## 7. Raster y Rasterio — NDVI (módulo 11, 2026-07-28)
+
+### 7.1 Vectorial vs raster — la otra mitad del mundo GIS
+
+Todo lo hecho hasta ahora (GeoPandas, Shapely, PostGIS) es **vectorial**:
+geometrías discretas (puntos, líneas, polígonos) con coordenadas exactas.
+**Raster** es la otra familia de datos espaciales: una rejilla regular de
+píxeles, cada uno con un valor numérico, cubriendo un área continua.
+Ejemplos típicos: imágenes satelitales, modelos de elevación (MDT/DEM),
+mapas de temperatura o de vegetación. La pregunta que responde vectorial es
+"¿qué hay en este punto/polígono exacto?"; la que responde raster es "¿qué
+valor tiene el terreno/imagen en *cualquier* punto del espacio, incluso
+donde no hay un dato vectorial explícito?".
+
+**Regla mental:** si el fenómeno es discreto y tiene bordes claros (una
+señal, un edificio, una parcela) → vectorial. Si el fenómeno es continuo y
+varía gradualmente por el espacio (altitud, temperatura, vegetación,
+reflectancia de una imagen satelital) → raster.
+
+### 7.2 Bandas, resolución y el `transform` afín
+
+Un raster (GeoTIFF) tiene:
+- **Bandas**: capas de valores superpuestas sobre la misma rejilla. Una foto
+  RGB normal tiene 3 bandas (rojo, verde, azul); una imagen satelital
+  multiespectral puede tener bandas fuera del visible (infrarrojo cercano,
+  térmica...).
+- **Resolución de píxel** (`src.res`): el tamaño real que representa cada
+  píxel en el terreno (ej. 10m x 10m en Sentinel-2). A menor tamaño de
+  píxel, mayor detalle y mayor peso del archivo.
+- **`transform` afín**: la fórmula matemática que convierte "fila, columna
+  de la rejilla" en "coordenada real del CRS" (y viceversa). Es el
+  equivalente raster a la columna `geometry` de un GeoDataFrame (§3): sin
+  él, el raster es solo una matriz de números sin ubicación en el espacio.
+  En `rasterio` se construye con `from_origin(oeste, norte, ancho_px,
+  alto_px)`.
+
+Igual que en vectorial (§2), un raster lleva su **CRS** pegado, y las mismas
+reglas aplican: si vas a medir distancias/áreas reales sobre él, necesitas
+que esté en un CRS métrico adecuado.
+
+### 7.3 NDVI — el caso de uso que trae la oferta de Acciona
+
+`NDVI = (NIR - RED) / (NIR + RED)`, donde `NIR` es la banda de infrarrojo
+cercano y `RED` la banda roja de una imagen multiespectral. La vegetación
+sana refleja mucho infrarrojo cercano y absorbe mucho rojo (para
+fotosíntesis), así que un valor alto de NDVI (> 0.3-0.6) indica vegetación
+sana; valores cercanos a 0, suelo desnudo o zona urbana; valores negativos,
+agua. Es el índice estándar de teledetección para caracterizar cobertura
+vegetal a partir de imágenes satelitales — justo lo que pide la oferta de
+Acciona (`OBJETIVOS-FORMACION.md`, 2026-07-28) para detección de arbolado
+viario y zonas verdes.
+
+### 7.4 Recorte por ventana (`Window`) — por qué no cargar todo en memoria
+
+Una imagen satelital real puede pesar gigabytes. `rasterio` permite leer
+solo una sub-región (`Window(columna, fila, ancho, alto)`) sin cargar el
+archivo completo a memoria — el equivalente raster a filtrar filas de una
+tabla antes de traerlas enteras. Es la técnica que se usa en producción para
+procesar solo el área de interés de una imagen mucho más grande.
+
+### 7.5 `sample()` — consultar el valor del raster en un punto
+
+`src.sample([(lon, lat), ...])` devuelve el valor del píxel que cae en cada
+coordenada dada. Es el equivalente raster del `sjoin` (§4) o `ST_DWithin`
+(§6.5): en vez de preguntar "¿qué polígono contiene este punto?", pregunta
+"¿qué valor tiene el raster en este punto?". En el script 11 se usa para
+cruzar el NDVI con los mismos puntos georreferenciados que producen los
+scripts 08/09 — un caso real sería "¿qué cobertura vegetal hay donde se
+detectó cada activo de infraestructura?".
+
+### 7.6 ¿Se pide en ofertas?
+
+Sí, en perfiles de **teledetección / medioambiente / servicios urbanos**
+(como Acciona) se pide explícitamente NDVI y procesamiento de imágenes
+satelitales. En perfiles de analista/desarrollador GIS genérico aparece
+menos que GeoPandas o PostGIS, pero es la pieza que falta para decir
+"cubro tanto vectorial como raster".
+
+---
+
 ## Pendiente de anotar aquí más adelante
-- Rasterio / GDAL para raster (bandas, resolución) — aún sin módulo.
 - Diferencia `intersects` vs `overlaps` vs `crosses` con ejemplos visuales.
 - **Docker manual** (pedido explícito 2026-07-16): imágenes vs contenedores
   vs volúmenes vs redes, comandos básicos (`build`, `run`, `ps`, `images`,

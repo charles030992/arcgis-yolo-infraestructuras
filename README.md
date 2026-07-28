@@ -18,6 +18,15 @@ Pipeline completo: foto de obra → detección de objetos con YOLO → punto geo
 | 08 | `08_pipeline_completo.py`  | Foto → YOLO → punto georreferenciado en ArcGIS (EXIF o coordenada por defecto) | ✅ Completado |
 | 09 | `09_analisis_espacial.py`  | Análisis espacial con GeoPandas/Shapely: buffer + spatial join sobre las detecciones | ✅ Completado |
 | 10 | `10_postgis_analisis.py` + `sql/10_postgis_conceptos_basicos.sql` | Mismo análisis espacial resuelto con SQL espacial (PostGIS, `ST_*`) — primero a mano en SQL puro, luego automatizado en Python | ✅ Completado |
+| 11 | `11_rasterio_analisis.py` | Análisis raster con Rasterio: bandas, resolución, recorte por ventana y cálculo de NDVI, muestreado sobre puntos georreferenciados | ✅ Completado |
+
+> **Salidas generadas por `11_rasterio_analisis.py`** (no versionadas, se
+> regeneran cada vez que se ejecuta — ver `.gitignore`):
+> - `imagen_satelite_sintetica.tif` — raster de 2 bandas (RED, NIR) simulado.
+> - `ndvi_resultado.tif` — raster de NDVI calculado a partir del anterior.
+> - `ndvi_visualizacion.png` — mapa de color del NDVI con los puntos de
+>   detección muestreados marcados encima (equivalente raster de los mapas
+>   Folium `.html` que generan los scripts 05/09).
 
 ---
 
@@ -58,6 +67,7 @@ arcGIS-Yolo-python/
 ├── 08_pipeline_completo.py
 ├── 09_analisis_espacial.py
 ├── 10_postgis_analisis.py
+├── 11_rasterio_analisis.py
 ├── sql/
 │   └── 10_postgis_conceptos_basicos.sql   # los mismos conceptos de 10, en SQL puro para practicar a mano
 ├── fotos_prueba/                # fotos de prueba (incluye una con GPS EXIF inyectado)
@@ -88,7 +98,7 @@ Aplicado al sector de obra e infraestructuras:
 conda create -n arcgis-yolo python=3.11 -y
 conda activate arcgis-yolo
 conda install -c esri arcgis -y
-pip install python-dotenv ultralytics geopandas shapely psycopg2-binary sqlalchemy
+pip install python-dotenv ultralytics geopandas shapely rasterio psycopg2-binary sqlalchemy
 ```
 
 > **Nota (aprendida 2026-07-16):** instala GeoPandas/Shapely/psycopg2 con

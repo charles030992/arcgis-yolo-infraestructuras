@@ -42,3 +42,6 @@ detecciones_georreferenciadas*.csv
 detecciones_analisis_espacial*.csv
 activos_infraestructura.csv
 yolov8n.pt
+
+# Salidas generadas por el script 11 (.tif ya cubiertos arriba)
+ndvi_visualizacion.png
